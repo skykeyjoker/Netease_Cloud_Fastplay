@@ -5,7 +5,7 @@
 
 TODO Lists:
 
-1. 发布release。
+1. ~~发布release。~~
 2. ~~记住密码。~~
 3. 更换源。
 
