@@ -1,4 +1,4 @@
-﻿    #if _MSC_VER >= 1600
+﻿#if _MSC_VER >= 1600
 #pragma execution_character_set("utf-8")
 #endif
 
@@ -9,6 +9,9 @@ NeteaseCloudFastPlayGUI::NeteaseCloudFastPlayGUI(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::NeteaseCloudFastPlayGUI)
 {
+    // 读取数据
+    readAccountDataFromFile();
+
     ui->setupUi(this);
 
 #ifdef Q_OS_WIN32
@@ -63,6 +66,13 @@ NeteaseCloudFastPlayGUI::NeteaseCloudFastPlayGUI(QWidget *parent)
     glay_login->addWidget(radio_phone,2,1);
 
     radio_email->setChecked(true);
+    le_userName->setCompleter(completer);
+
+    // 连接自动补全的信号槽
+    void (QCompleter::*pActivated)(const QString &) = &QCompleter::activated;
+    void (NeteaseCloudFastPlayGUI::*pInsertPwd)(const QString &) = &NeteaseCloudFastPlayGUI::insertPwd;
+    connect(completer, pActivated, this, pInsertPwd);
+
     le_passWord->setEchoMode(QLineEdit::Password);
 
     vlay_gruopAccount->addWidget(groupAccount_info);
@@ -101,14 +111,34 @@ NeteaseCloudFastPlayGUI::NeteaseCloudFastPlayGUI(QWidget *parent)
         {
             if(radio_email->isChecked())
             {
-                login(le_userName->text(),
-                      le_passWord->text());
+                bool ret = login(le_userName->text(),
+                                 le_passWord->text());
+
+                if(ret)
+                {
+                    // 如果是新用户则保存到文件中
+                    if(!userNameList.contains(le_userName->text()))
+                    {
+                        qDebug()<<"User Not Exits";
+                        saveAccountDataToFile(le_userName->text(), le_passWord->text());
+                    }
+                }
+
             }
             else
             {
-                login(le_userName->text(),
-                      le_passWord->text(),
-                      false);
+                bool ret = login(le_userName->text(),
+                                 le_passWord->text(),
+                                 false);
+
+                // 如果是新用户则保存到文件中
+                if(ret)
+                {
+                    if(!userNameList.contains(le_userName->text()))
+                    {
+                        saveAccountDataToFile(le_userName->text(), le_passWord->text());
+                    }
+                }
             }
 
         }
@@ -166,6 +196,165 @@ NeteaseCloudFastPlayGUI::~NeteaseCloudFastPlayGUI()
     delete ui;
 }
 
+// 从文件中导入保存的帐户密码
+bool NeteaseCloudFastPlayGUI::readAccountDataFromFile()
+{
+    QFile *inFile = new QFile("accounts.json");
+
+    // 首次运行时改文件不存在
+    if(!inFile->exists())
+    {
+        qDebug()<<"File not exists";
+        bool ret = createAccountDataFile();
+        if(!ret)
+        {
+            QMessageBox::critical(this,"帐户数据库创建失败","未能成功创建本地帐户数据库文件！");
+
+            return false;
+        }
+
+
+    }
+    if(!inFile->open(QFile::ReadOnly))
+    {
+        QMessageBox::critical(this,"帐户数据库读取失败","未能成功读取本地数据库文件！");
+
+        return false;
+    }
+
+    QByteArray buf = inFile->readAll();  //读取文件内容
+    inFile->close();
+    qDebug()<<buf;
+    //转化为JSON
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(buf, &err);
+
+    if(err.error!=QJsonParseError::NoError)
+    {
+        QMessageBox::critical(this,"帐户数据库读取失败","未能成功读取本地数据库文件！");
+
+        return false;
+    }
+    QJsonObject obj = doc.object();
+    QJsonArray accountArr = obj.value("accounts").toArray();
+
+    //qDebug()<<"read";
+
+    // 将保存的帐户信息解密并保存到自动补全对象中
+    for(auto ite : accountArr)
+    {
+        // 读取当前项的账号密码
+        QJsonObject currentAccount = ite.toObject();
+        QString userName = currentAccount.value("userName").toString();
+        QString pwd = currentAccount.value("pwd").toString();
+        qDebug()<<userName<<" "<<pwd;
+
+        // 解密
+        if(!userName.isEmpty() && !pwd.isEmpty())
+        {
+            QAESEncryption encryption(QAESEncryption::AES_128, QAESEncryption::ECB, QAESEncryption::ZERO);
+
+            QByteArray hashKey = QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Md5);
+
+            QString deCryptedPWD = QString::fromUtf8(encryption.decode(QByteArray::fromBase64(pwd.toLatin1()),hashKey));
+            qDebug()<<deCryptedPWD;
+
+            // 储存帐户信息
+            userNameList<<userName;
+            accountMap.insert(userName,deCryptedPWD);
+
+        }
+    }
+
+    // 填入completer
+    completer = new QCompleter(userNameList);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);  // 大小写不敏感
+    completer->setFilterMode(Qt::MatchContains);  // 包含即提示
+    //qDebug()<<"completer";
+    return true;
+}
+
+// 创建帐户保存文件
+bool NeteaseCloudFastPlayGUI::createAccountDataFile()
+{
+    QFile *outFile = new QFile("accounts.json");
+    if(!outFile->open(QFile::WriteOnly))
+    {
+        QMessageBox::critical(this, "保存用户信息失败", "未能成功保存用户信息！");
+        return false;
+    }
+
+    // 构造JSON
+    QJsonDocument doc;
+    QJsonObject obj;
+
+    QJsonArray arr;
+    QJsonObject tmp;
+    tmp.insert("userName","");
+    tmp.insert("pwd","");
+    arr.insert(0,tmp);
+
+    obj.insert("accounts",arr);
+    doc.setObject(obj);
+
+    // 写入文件
+    QByteArray buf = doc.toJson();
+    outFile->write(buf);
+
+    outFile->close();
+    return true;
+}
+
+// 保存用户信息到文件
+bool NeteaseCloudFastPlayGUI::saveAccountDataToFile(const QString &userName, const QString &pwd)
+{
+    qDebug()<<"save account start";
+    QFile *outFile = new QFile("accounts.json");
+    if(!outFile->open(QFile::ReadWrite))
+    {
+        QMessageBox::critical(this, "保存用户信息失败", "未能成功保存用户信息！");
+        return false;
+    }
+    QByteArray buf = outFile->readAll();
+    outFile->close();
+
+    if(!outFile->open(QFile::ReadWrite | QFile::Truncate))
+    {
+        QMessageBox::critical(this, "保存用户信息失败", "未能成功保存用户信息！");
+        return false;
+    }
+
+    // 获取文件JSON信息
+    QJsonDocument doc = QJsonDocument::fromJson(buf);
+    QJsonObject obj = doc.object();
+
+    // 加密
+    QAESEncryption encryption(QAESEncryption::AES_128, QAESEncryption::ECB, QAESEncryption::ZERO);
+    QByteArray hashKey = QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Md5);
+    QByteArray tmp = encryption.encode(pwd.toUtf8(), hashKey);
+    QString enCryptedPwd = QString::fromLatin1(tmp.toBase64());
+
+    // 转化JSON
+    QJsonArray accountArr = obj.value("accounts").toArray();
+    QJsonObject currentAccountObj;
+    currentAccountObj.insert("userName",userName);
+    currentAccountObj.insert("pwd",enCryptedPwd);
+    accountArr.insert(accountArr.size(),currentAccountObj);
+
+    obj.insert("accounts", accountArr);
+    doc.setObject(obj);
+
+    qDebug()<<doc;
+
+    // 写入到文件
+    QByteArray outbuf = doc.toJson();
+    outFile->write(outbuf);
+    outFile->close();
+
+    return true;
+}
+
+// 获取用户信息
 void NeteaseCloudFastPlayGUI::getInfos()
 {
     QNetworkRequest request;
@@ -359,9 +548,8 @@ void NeteaseCloudFastPlayGUI::listenSongs(const QString &id, const int &times)
     });
 }
 
-
 // 登录用户
-void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password, bool loginFromEmail)
+bool NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password, bool loginFromEmail)
 {
     manager = new QNetworkAccessManager;
 
@@ -385,7 +573,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
             if(reply->error() != QNetworkReply::NoError)
             {
                 QMessageBox::critical(this,"登录失败","登陆失败，请检查用户名和密码，以及检查网络是否畅通！");
-                return;
+                return false;
             }
 
             // 读取返回
@@ -403,7 +591,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
                 qDebug()<<"Can't import json data.";
 
                 QMessageBox::critical(this,"登录失败","登陆失败，请检查用户名和密码，以及检查网络是否畅通！");
-                return;
+                return false;
             }
             else // 成功转化 JSON
             {
@@ -414,7 +602,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
                     qDebug()<<"Code Err";
                     qDebug()<<code;
                     QMessageBox::critical(this,"登录失败","登陆失败，请检查用户名和密码，以及检查网络是否畅通！");
-                    return;
+                    return false;
                 }
 
 
@@ -437,8 +625,6 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
             allCookies = manager->cookieJar()->cookiesForUrl(QUrl("http://navi.skykeyjoker.xyz"));
             qDebug()<<allCookies;
         });
-
-
     }
     else //手机号登录
     {
@@ -454,7 +640,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
             if(reply->error() != QNetworkReply::NoError)
             {
                 QMessageBox::critical(this,"登录失败","登陆失败，请检查用户名和密码，以及检查网络是否畅通！");
-                return;
+                return false;
             }
 
             QByteArray buf = reply->readAll();
@@ -468,7 +654,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
                 qDebug()<<"Can't import json data.";
 
                 QMessageBox::critical(this,"登录失败","登陆失败，请检查用户名和密码，以及检查网络是否畅通！");
-                return;
+                return false;
             }
 
             int code = docment.object().value("code").toInt();
@@ -477,7 +663,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
                 qDebug()<<"Code Err";
                 qDebug()<<code;
                 QMessageBox::critical(this,"登录失败","登陆失败，请检查用户名和密码，以及检查网络是否畅通！");
-                return;
+                return false;
             }
             else
             {
@@ -500,6 +686,8 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
             qDebug()<<allCookies;
         });
     }
+
+    return true;
 }
 
 void NeteaseCloudFastPlayGUI::timerOneShot()
@@ -555,5 +743,11 @@ void NeteaseCloudFastPlayGUI::timerOneShot()
             return;
         }
     });
+}
+
+// 连接到自动补全的槽函数，插入对应的密码
+void NeteaseCloudFastPlayGUI::insertPwd(const QString &userName)
+{
+    le_passWord->setText(accountMap.value(userName));
 }
 

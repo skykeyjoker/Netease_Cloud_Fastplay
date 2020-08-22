@@ -2,6 +2,7 @@
 #define NETEASECLOUDFASTPLAYGUI_H
 
 #include "stable.h"
+#include "qaesencryption.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NeteaseCloudFastPlayGUI; }
@@ -15,14 +16,19 @@ public:
     NeteaseCloudFastPlayGUI(QWidget *parent = nullptr);
     ~NeteaseCloudFastPlayGUI();
 
+
+    bool readAccountDataFromFile();
+    bool createAccountDataFile();
+    bool saveAccountDataToFile(const QString &userName, const QString &pwd);
     void getInfos();
     void downloadAvatar();
     void sign();
     void clockin();
     void listenSongs(const QString &id , const int &times);
 public slots:
-    void login(const QString &uin, const QString &password, bool loginFromEmail = true);
+    bool login(const QString &uin, const QString &password, bool loginFromEmail = true);
     void timerOneShot();
+    void insertPwd(const QString &userName);
 private:
     Ui::NeteaseCloudFastPlayGUI *ui;
 
@@ -59,5 +65,10 @@ private:
 
     int shot = 0;
     QTimer *timer;
+
+    const QString key = "Caolin20001223";
+    QMap<QString,QString> accountMap;
+    QStringList userNameList;
+    QCompleter *completer;
 };
 #endif // NETEASECLOUDFASTPLAYGUI_H

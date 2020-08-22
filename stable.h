@@ -44,4 +44,6 @@
 
 #include <QTimer>
 
+#include <QCompleter>
+
 #endif // STABLE_H

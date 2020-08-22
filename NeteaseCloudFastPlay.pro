@@ -16,11 +16,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    aesni/aesni-enc-cbc.c \
+    aesni/aesni-enc-ecb.c \
+    aesni/aesni-key-exp.c \
     main.cpp \
-    neteasecloudfastplaygui.cpp
+    neteasecloudfastplaygui.cpp \
+    qaesencryption.cpp
 
 HEADERS += \
     neteasecloudfastplaygui.h \
+    qaesencryption.h \
     stable.h
 
 FORMS += \
