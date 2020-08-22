@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
+<<<<<<< Updated upstream
 <!-- Written by QtCreator 4.12.4, 2020-08-22T19:30:41. -->
+=======
+<!-- Written by QtCreator 4.12.4, 2020-08-22T22:08:37. -->
+>>>>>>> Stashed changes
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -74,10 +78,17 @@
  <data>
   <variable>ProjectExplorer.Project.Target.0</variable>
   <valuemap type="QVariantMap">
+<<<<<<< Updated upstream
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Android for armeabi-v7a,arm64-v8a,x86,x86_64 (Clang Qt 5.15.0 for Android)</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Android for armeabi-v7a,arm64-v8a,x86,x86_64 (Clang Qt 5.15.0 for Android)</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{df9a6183-e80f-40dc-9db7-8ddc35a5c789}</value>
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">0</value>
+=======
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Desktop</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Desktop</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{15d919fc-fe2d-45d3-b0ef-f276793540e6}</value>
+   <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">1</value>
+>>>>>>> Stashed changes
    <value type="int" key="ProjectExplorer.Target.ActiveDeployConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
@@ -625,7 +636,11 @@
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory"></value>
+<<<<<<< Updated upstream
     <value type="QString" key="RunConfiguration.WorkingDirectory.default">D:/File/QtBuild/build-NeteaseCloudFastPlay-Desktop_Qt_5_15_0_MSVC2019_64bit-Release</value>
+=======
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/skykey/CODE/Qt/build-NeteaseCloudFastPlay-Desktop-Release</value>
+>>>>>>> Stashed changes
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
