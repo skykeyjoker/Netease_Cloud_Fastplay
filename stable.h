@@ -17,6 +17,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QCheckBox>
 #include <QLabel>
 
 #include <QtNetwork>

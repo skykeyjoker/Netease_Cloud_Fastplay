@@ -3,6 +3,8 @@
 特别感谢：
 [网易云音乐升级API](https://github.com/ZainCheung/netease-cloud-api)
 
+[AES加密](https://github.com/bricke/Qt-AES)
+
 TODO Lists:
 
 1. ~~发布release。~~

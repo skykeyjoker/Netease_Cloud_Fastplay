@@ -26,7 +26,7 @@ public:
     void clockin();
     void listenSongs(const QString &id , const int &times);
 public slots:
-    bool login(const QString &uin, const QString &password, bool loginFromEmail = true);
+    void login(const QString &uin, const QString &password, bool loginFromEmail = true);
     void timerOneShot();
     void insertPwd(const QString &userName);
 private:
@@ -43,6 +43,7 @@ private:
 
     QRadioButton *radio_email;
     QRadioButton *radio_phone;
+    QCheckBox *ck_savePass;
 
     QLabel *lb_avatar;
     QLabel *lb_nickName;
