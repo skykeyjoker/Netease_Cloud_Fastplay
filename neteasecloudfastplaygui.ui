@@ -32,11 +32,29 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>25</height>
+     <height>30</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>设置</string>
+    </property>
+    <addaction name="action_API"/>
+    <addaction name="action_About"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_API">
+   <property name="text">
+    <string>更换API源</string>
+   </property>
+  </action>
+  <action name="action_About">
+   <property name="text">
+    <string>关于程序</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

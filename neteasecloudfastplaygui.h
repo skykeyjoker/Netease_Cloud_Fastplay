@@ -3,6 +3,8 @@
 
 #include "stable.h"
 #include "qaesencryption.h"
+#include "apidialog.h"
+#include "aboutdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NeteaseCloudFastPlayGUI; }
@@ -29,6 +31,11 @@ public slots:
     void login(const QString &uin, const QString &password, bool loginFromEmail = true);
     void timerOneShot();
     void insertPwd(const QString &userName);
+private slots:
+    void on_action_API_triggered();
+
+    void on_action_About_triggered();
+
 private:
     Ui::NeteaseCloudFastPlayGUI *ui;
 

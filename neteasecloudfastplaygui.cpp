@@ -748,3 +748,18 @@ void NeteaseCloudFastPlayGUI::insertPwd(const QString &userName)
     le_passWord->setText(accountMap.value(userName));
 }
 
+// API更换菜单选中
+void NeteaseCloudFastPlayGUI::on_action_API_triggered()
+{
+    APIDialog *dialog = new APIDialog(this);
+
+    dialog->exec();
+}
+
+// 关于菜单选中
+void NeteaseCloudFastPlayGUI::on_action_About_triggered()
+{
+    AboutDialog *dialog = new AboutDialog(this);
+
+    dialog->exec();
+}
