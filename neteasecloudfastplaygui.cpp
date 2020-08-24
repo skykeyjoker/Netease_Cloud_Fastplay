@@ -341,7 +341,7 @@ bool NeteaseCloudFastPlayGUI::saveAccountDataToFile(const QString &userName, con
 void NeteaseCloudFastPlayGUI::getInfos()
 {
     QNetworkRequest request;
-    request.setUrl(QUrl(tr("http://navi.skykeyjoker.xyz/?do=detail&uid=%1").arg(uid)));
+    request.setUrl(QUrl(tr("%1/?do=detail&uid=%2").arg(apiUrl).arg(uid)));
 
     // 发送 GET 请求
     QNetworkReply *reply = manager->get(request);
@@ -428,7 +428,7 @@ void NeteaseCloudFastPlayGUI::sign()
     var.setValue(allCookies);
 
     QNetworkRequest request;
-    request.setUrl(QUrl("http://navi.skykeyjoker.xyz/?do=sign"));
+    request.setUrl(QUrl(tr("%1/?do=sign").arg(apiUrl)));
     request.setHeader(QNetworkRequest::CookieHeader,var);
 
     QNetworkReply *reply = manager->get(request);
@@ -493,7 +493,7 @@ void NeteaseCloudFastPlayGUI::listenSongs(const QString &id, const int &times)
     var.setValue(allCookies);
 
     QNetworkRequest request;
-    request.setUrl(QUrl(tr("http://navi.skykeyjoker.xyz/?do=listen&id=%1&time=%2").arg(id).arg(times)));
+    request.setUrl(QUrl(tr("%1/?do=listen&id=%2&time=%3").arg(apiUrl).arg(id).arg(times)));
     request.setHeader(QNetworkRequest::CookieHeader,var);
 
     QNetworkReply *reply = manager->get(request);
@@ -544,7 +544,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
     if(loginFromEmail) //邮箱登录
     {
         QNetworkRequest request;
-        request.setUrl(QUrl(tr("http://navi.skykeyjoker.xyz/?do=email&uin=%1&pwd=%2").arg(uin).arg(md5)));
+        request.setUrl(QUrl(tr("%1/?do=email&uin=%2&pwd=%3").arg(apiUrl).arg(uin).arg(md5)));
 
         //qDebug()<<request.url();
 
@@ -603,9 +603,8 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
                     groupOperation->setEnabled(true);
 
                     // 获取Cookies
-                    cookieJar = manager->cookieJar();
-                    allCookies = manager->cookieJar()->cookiesForUrl(QUrl("http://navi.skykeyjoker.xyz"));
-                    qDebug()<<allCookies;
+                    MyNetworkCookieJar *myCookieJar = static_cast<MyNetworkCookieJar*>(manager->cookieJar());
+                    allCookies = myCookieJar->getAllCookies();
 
                     // 如果为新用户且勾选保存密码，则保存
                     if(!userNameList.contains(uin) && ck_savePass->isChecked())
@@ -619,7 +618,7 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
     else //手机号登录
     {
         QNetworkRequest request;
-        request.setUrl(QUrl(tr("http://navi.skykeyjoker.xyz/?do=login&uin=%1&pwd=%2").arg(uin).arg(md5)));
+        request.setUrl(QUrl(tr("%1/?do=login&uin=%2&pwd=%3").arg(apiUrl).arg(uin).arg(md5)));
 
         //qDebug()<<request.url();
 
@@ -670,10 +669,9 @@ void NeteaseCloudFastPlayGUI::login(const QString &uin, const QString &password,
                 groupOperation->setEnabled(true);
 
 
-                // 保存cookies
-                cookieJar = manager->cookieJar();
-                allCookies = manager->cookieJar()->cookiesForUrl(QUrl("http://navi.skykeyjoker.xyz"));
-                qDebug()<<allCookies;
+                // 获取Cookies
+                MyNetworkCookieJar *myCookieJar = static_cast<MyNetworkCookieJar*>(manager->cookieJar());
+                allCookies = myCookieJar->getAllCookies();
 
                 // 如果为新用户且勾选保存密码，则保存
                 if(!userNameList.contains(uin) && ck_savePass->isChecked())
@@ -708,7 +706,7 @@ void NeteaseCloudFastPlayGUI::timerOneShot()
     var.setValue(allCookies);
 
     QNetworkRequest request;
-    request.setUrl(QUrl("http://navi.skykeyjoker.xyz/?do=daka"));
+    request.setUrl(QUrl(tr("%1/?do=daka").arg(apiUrl)));
     request.setHeader(QNetworkRequest::CookieHeader,var);
 
     QNetworkReply *reply = manager->get(request);
@@ -748,10 +746,23 @@ void NeteaseCloudFastPlayGUI::insertPwd(const QString &userName)
     le_passWord->setText(accountMap.value(userName));
 }
 
+// 更新API地址槽函数
+void NeteaseCloudFastPlayGUI::updateAPIUrl(const QString &newUrl)
+{
+    qDebug()<<"Update API "<<newUrl;
+    apiUrl = newUrl;
+    qDebug()<<apiUrl;
+}
+
 // API更换菜单选中
 void NeteaseCloudFastPlayGUI::on_action_API_triggered()
 {
-    APIDialog *dialog = new APIDialog(this);
+    qDebug()<<apiUrl;
+    APIDialog *dialog = new APIDialog(apiUrl, this);
+
+    void (APIDialog::*pSIGNALUpdateAPIUrl)(const QString &) = &APIDialog::updateAPIUrl;
+    void (NeteaseCloudFastPlayGUI::*pSLOTUpdateAPIUrl)(const QString &) = &NeteaseCloudFastPlayGUI::updateAPIUrl;
+    connect(dialog, pSIGNALUpdateAPIUrl, this, pSLOTUpdateAPIUrl);
 
     dialog->exec();
 }

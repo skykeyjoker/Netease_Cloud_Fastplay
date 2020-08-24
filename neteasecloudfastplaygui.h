@@ -6,6 +6,8 @@
 #include "apidialog.h"
 #include "aboutdialog.h"
 
+#include "mynetworkcookiejar.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class NeteaseCloudFastPlayGUI; }
 QT_END_NAMESPACE
@@ -31,6 +33,7 @@ public slots:
     void login(const QString &uin, const QString &password, bool loginFromEmail = true);
     void timerOneShot();
     void insertPwd(const QString &userName);
+    void updateAPIUrl(const QString &newUrl);
 private slots:
     void on_action_API_triggered();
 
@@ -78,5 +81,6 @@ private:
     QMap<QString,QString> accountMap;
     QStringList userNameList;
     QCompleter *completer;
+    QString apiUrl = "http://navi.skykeyjoker.xyz";
 };
 #endif // NETEASECLOUDFASTPLAYGUI_H

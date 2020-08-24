@@ -2,6 +2,7 @@
 #define ABOUTDIALOG_H
 
 #include "stable.h"
+#include <QTextBrowser>
 
 class AboutDialog : public QDialog
 {
@@ -9,6 +10,8 @@ class AboutDialog : public QDialog
 public:
     explicit AboutDialog(QWidget *parent = nullptr);
 
+private:
+    QVBoxLayout *mainLay;
 signals:
 
 };

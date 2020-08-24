@@ -22,12 +22,14 @@ SOURCES += \
     aesni/aesni-key-exp.c \
     apidialog.cpp \
     main.cpp \
+    mynetworkcookiejar.cpp \
     neteasecloudfastplaygui.cpp \
     qaesencryption.cpp
 
 HEADERS += \
     aboutdialog.h \
     apidialog.h \
+    mynetworkcookiejar.h \
     neteasecloudfastplaygui.h \
     qaesencryption.h \
     stable.h
